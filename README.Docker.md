@@ -1,23 +1,23 @@
 # Docker 部署
 
-本仓库已经包含 Docker 镜像构建、MySQL 初始化和 GitHub Actions 自动发布配置。
+本仓库已经包含 Docker 镜像构建、MySQL 自动初始化和 GitHub Actions 自动发布配置。
 
-镜像默认发布到：
+默认镜像：
 
 - `orangeqiu/epay:latest`
 - `orangeqiu/epay:sha-<commit短SHA>`
 
-## 一、提交后自动打包
+## 自动打包
 
-你已经在 GitHub 仓库配置了 `DOCKERHUB_USERNAME` 和 `DOCKERHUB_TOKEN` 后，只需要推送到 `main`：
+推送到 `main` 后，GitHub Actions 会自动构建并推送 `orangeqiu/epay:latest`：
 
 ```bash
 git add .
-git commit -m "Add Docker deployment"
+git commit -m "Update Docker deployment"
 git push origin main
 ```
 
-然后到 GitHub 仓库的 `Actions` 页面，打开 `Docker Image` 工作流，等待构建完成。成功后 Docker Hub 会出现 `orangeqiu/epay:latest` 镜像。
+到 GitHub 仓库的 `Actions` 页面，打开 `Docker Image` 工作流，等待构建完成。成功后 Docker Hub 会出现 `orangeqiu/epay:latest` 镜像。
 
 如需发版本号镜像：
 
@@ -28,44 +28,25 @@ git push origin v1.0.0
 
 会额外发布 `orangeqiu/epay:v1.0.0`。
 
-## 二、本地源码构建启动
+## 只下载 compose 启动
 
-适合在服务器上拉源码后直接构建运行。
+等 GitHub Actions 构建成功后，只需要下载 `docker-compose.yml` 和 `.env`：
 
 ```bash
-git clone https://github.com/QCEnjoyLL/Epay.git
-cd Epay
-cp .env.example .env
+curl -fsSLO https://raw.githubusercontent.com/QCEnjoyLL/Epay/main/docker-compose.yml
+curl -fsSLO https://raw.githubusercontent.com/QCEnjoyLL/Epay/main/.env
+docker compose up -d
 ```
 
-Windows PowerShell 使用：
+Windows PowerShell：
 
 ```powershell
-Copy-Item .env.example .env
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/QCEnjoyLL/Epay/main/docker-compose.yml -OutFile docker-compose.yml
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/QCEnjoyLL/Epay/main/.env -OutFile .env
+docker compose up -d
 ```
 
-编辑 `.env`，至少修改这些密码：
-
-```env
-MYSQL_ROOT_PASSWORD=改成强密码
-MYSQL_PASSWORD=改成强密码
-APP_PORT=8080
-```
-
-启动：
-
-```bash
-docker compose up -d --build
-```
-
-查看状态：
-
-```bash
-docker compose ps
-docker compose logs -f app
-```
-
-访问：
+默认访问地址：
 
 - 前台：`http://服务器IP:8080/`
 - 后台：`http://服务器IP:8080/admin/`
@@ -77,66 +58,59 @@ docker compose logs -f app
 
 第一次登录后立即修改后台密码。
 
-## 三、使用 Docker Hub 镜像启动
+## 修改配置
 
-适合 GitHub Actions 已经把镜像推送到 Docker Hub 后使用。
-
-先准备部署文件：
-
-```bash
-git clone https://github.com/QCEnjoyLL/Epay.git
-cd Epay
-cp .env.example .env
-```
-
-Windows PowerShell 使用：
-
-```powershell
-Copy-Item .env.example .env
-```
-
-编辑 `.env`：
+启动前可以编辑 `.env`：
 
 ```env
-DOCKERHUB_IMAGE=orangeqiu/epay:latest
-MYSQL_ROOT_PASSWORD=改成强密码
-MYSQL_PASSWORD=改成强密码
 APP_PORT=8080
+MYSQL_ROOT_PASSWORD=改成强密码
+MYSQL_DATABASE=epay
+MYSQL_USER=epay
+MYSQL_PASSWORD=改成强密码
+EPAY_DB_PREFIX=pay
+EPAY_IMAGE=orangeqiu/epay:latest
 ```
 
-拉取镜像并启动：
+生产环境建议至少修改 `MYSQL_ROOT_PASSWORD` 和 `MYSQL_PASSWORD`。
 
-```bash
-docker compose -f docker-compose.hub.yml pull
-docker compose -f docker-compose.hub.yml up -d
-```
+## 数据库初始化
 
-更新到最新镜像：
-
-```bash
-docker compose -f docker-compose.hub.yml pull
-docker compose -f docker-compose.hub.yml up -d
-```
-
-## 四、数据库初始化说明
-
-`docker-compose.yml` 和 `docker-compose.hub.yml` 都会在首次启动 MySQL 时自动导入 `install/install.sql`，并根据 `.env` 中的 `EPAY_DB_PREFIX` 替换表前缀。
+应用容器首次启动时，会自动使用镜像内的 `install/install.sql` 初始化 MySQL，并根据 `EPAY_DB_PREFIX` 替换表前缀。
 
 初始化只会在数据库卷为空时执行一次。需要清空本地测试数据并重新初始化时运行：
 
 ```bash
 docker compose down -v
-docker compose up -d --build
+docker compose up -d
 ```
 
-使用 Docker Hub 镜像方式时对应命令为：
+## 更新镜像
 
 ```bash
-docker compose -f docker-compose.hub.yml down -v
-docker compose -f docker-compose.hub.yml up -d
+docker compose pull
+docker compose up -d
 ```
 
-## 五、常用运维命令
+## 常用命令
+
+查看状态：
+
+```bash
+docker compose ps
+```
+
+查看应用日志：
+
+```bash
+docker compose logs -f app
+```
+
+查看数据库日志：
+
+```bash
+docker compose logs -f db
+```
 
 停止：
 
@@ -156,19 +130,7 @@ docker compose restart
 docker compose exec app bash
 ```
 
-查看应用日志：
-
-```bash
-docker compose logs -f app
-```
-
-查看数据库日志：
-
-```bash
-docker compose logs -f db
-```
-
-## 六、定时任务
+## 定时任务
 
 项目包含 `cron.php`，生产环境需要配置定时访问。可在服务器 crontab 中按需添加：
 

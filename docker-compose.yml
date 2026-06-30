@@ -1,7 +1,6 @@
 services:
   app:
-    build: .
-    image: epay:local
+    image: ${EPAY_IMAGE:-orangeqiu/epay:latest}
     depends_on:
       db:
         condition: service_healthy
@@ -14,6 +13,7 @@ services:
       DB_USER: ${MYSQL_USER:-epay}
       DB_PASSWORD: ${MYSQL_PASSWORD:-epay_password}
       DB_PREFIX: ${EPAY_DB_PREFIX:-pay}
+      EPAY_AUTO_INSTALL: 1
       EPAY_INSTALL_LOCK: 1
     restart: unless-stopped
 
@@ -29,11 +29,8 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-epay}
       MYSQL_USER: ${MYSQL_USER:-epay}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-epay_password}
-      EPAY_DB_PREFIX: ${EPAY_DB_PREFIX:-pay}
     volumes:
       - epay-db:/var/lib/mysql
-      - ./install/install.sql:/docker-entrypoint-initdb.d/install.sql.template:ro
-      - ./docker/mysql/init-epay.sh:/docker-entrypoint-initdb.d/init-epay.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
