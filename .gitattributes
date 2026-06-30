@@ -1,0 +1,12 @@
+Dockerfile text eol=lf
+README.md text eol=lf
+README.Docker.md text eol=lf
+.dockerignore text eol=lf
+.env.example text eol=lf
+.gitignore text eol=lf
+docker-compose*.yml text eol=lf
+docker-compose*.yaml text eol=lf
+docker/** text eol=lf
+.github/workflows/*.yml text eol=lf
+.github/workflows/*.yaml text eol=lf
+*.sh text eol=lf

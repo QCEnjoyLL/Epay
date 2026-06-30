@@ -4,6 +4,14 @@
 
 ---
 
+## Docker 部署
+
+本仓库已补充 Dockerfile、Docker Compose 和 GitHub Actions 自动构建配置。
+
+详细启动方法见：[README.Docker.md](README.Docker.md)
+
+---
+
 ## 功能特色
 
 - **多渠道支付集成**：支持支付宝、微信、财付通、QQ钱包、微信WAP、银联等多种支付方式  
