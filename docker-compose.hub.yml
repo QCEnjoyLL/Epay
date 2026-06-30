@@ -1,6 +1,6 @@
 services:
   app:
-    image: ${DOCKERHUB_IMAGE:?Set DOCKERHUB_IMAGE in .env, for example your-dockerhub-name/epay:latest}
+    image: ${DOCKERHUB_IMAGE:?Set DOCKERHUB_IMAGE in .env, for example orangeqiu/epay:latest}
     depends_on:
       db:
         condition: service_healthy

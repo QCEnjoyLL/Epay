@@ -4,8 +4,8 @@
 
 镜像默认发布到：
 
-- `你的DockerHub用户名/epay:latest`
-- `你的DockerHub用户名/epay:sha-<commit短SHA>`
+- `orangeqiu/epay:latest`
+- `orangeqiu/epay:sha-<commit短SHA>`
 
 ## 一、提交后自动打包
 
@@ -17,7 +17,7 @@ git commit -m "Add Docker deployment"
 git push origin main
 ```
 
-然后到 GitHub 仓库的 `Actions` 页面，打开 `Docker Image` 工作流，等待构建完成。成功后 Docker Hub 会出现 `epay:latest` 镜像。
+然后到 GitHub 仓库的 `Actions` 页面，打开 `Docker Image` 工作流，等待构建完成。成功后 Docker Hub 会出现 `orangeqiu/epay:latest` 镜像。
 
 如需发版本号镜像：
 
@@ -26,7 +26,7 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-会额外发布 `你的DockerHub用户名/epay:v1.0.0`。
+会额外发布 `orangeqiu/epay:v1.0.0`。
 
 ## 二、本地源码构建启动
 
@@ -98,7 +98,7 @@ Copy-Item .env.example .env
 编辑 `.env`：
 
 ```env
-DOCKERHUB_IMAGE=你的DockerHub用户名/epay:latest
+DOCKERHUB_IMAGE=orangeqiu/epay:latest
 MYSQL_ROOT_PASSWORD=改成强密码
 MYSQL_PASSWORD=改成强密码
 APP_PORT=8080
